@@ -40,7 +40,7 @@ src/
 - **Change copy or links:** edit `src/data/content.js`. The hero's jokes live in `HINTS` in `Scene.jsx`, the build steps in `STEPS` in `HowIBuild.jsx`.
 - **Change the sculpture:** redraw the `RK` grid in `src/world/letters.js` (X = a stud of brick).
 - **Add a project:** add an entry to `builds`, then give it an illustration in `Art.jsx` and map it in `Builds.jsx`.
-- **Résumé:** the site links to `/assets/Rahmat-Khan-Resume.pdf`, so put the PDF at `public/assets/Rahmat-Khan-Resume.pdf`.
+- **Résumé:** every Résumé button links to `public/assets/Rahmat-Khan-Resume.pdf`. Replace that file to update them all.
 
 ## Design rules (from rk. bricks)
 
