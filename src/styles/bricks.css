@@ -1,0 +1,207 @@
+/* rk. bricks — component styles. Values come from tokens.css; motion curves are the README's table. */
+@property --mx { syntax: "<length>"; inherits: true; initial-value: -400px; }
+@property --my { syntax: "<length>"; inherits: true; initial-value: -400px; }
+
+/* Brick colour slots: --brick is the plastic, --label the text on it */
+.rk-c-red    { --brick: var(--brick-red);    --label: var(--brick-label-light); }
+.rk-c-blue   { --brick: var(--brick-blue);   --label: var(--brick-label-light); }
+.rk-c-green  { --brick: var(--brick-green);  --label: var(--brick-label-light); }
+.rk-c-black  { --brick: var(--brick-black);  --label: var(--brick-label-light); }
+.rk-c-yellow { --brick: var(--brick-yellow); --label: var(--brick-label-dark); }
+.rk-c-tan    { --brick: var(--brick-tan);    --label: var(--brick-label-dark); }
+.rk-c-white  { --brick: var(--brick-white);  --label: var(--brick-label-dark); }
+.rk-c-gray   { --brick: var(--brick-gray);   --label: var(--brick-label-dark); }
+.rk-c-off    { --brick: var(--ink-muted);    --label: var(--surface); }
+
+/* Brick: front elevation, studs on top, lip below */
+.rk-brick {
+  --stud-h: 5px;
+  position: relative; display: inline-flex; flex-direction: column; vertical-align: bottom;
+  box-sizing: border-box; width: calc(var(--studs, 2) * var(--stud-pitch));
+  margin: 0; padding: 0; border: 0; background: none;
+  color: var(--label); text-decoration: none; text-align: center;
+  -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+  translate: 0 0;
+  transition: translate 260ms cubic-bezier(.34,1.56,.64,1), transform 260ms cubic-bezier(.34,1.56,.64,1), scale 260ms cubic-bezier(.34,1.56,.64,1), rotate 260ms cubic-bezier(.34,1.56,.64,1);
+}
+.rk-brick:visited { color: var(--label); }
+.rk-studs {
+  display: block; height: var(--stud-h); margin: 0 1px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px), var(--brick);
+  -webkit-mask: linear-gradient(90deg, transparent calc((var(--stud-pitch) - var(--stud-size)) / 2), #000 0 calc((var(--stud-pitch) + var(--stud-size)) / 2), transparent 0) 0 0 / var(--stud-pitch) 100% space no-repeat;
+          mask: linear-gradient(90deg, transparent calc((var(--stud-pitch) - var(--stud-size)) / 2), #000 0 calc((var(--stud-pitch) + var(--stud-size)) / 2), transparent 0) 0 0 / var(--stud-pitch) 100% space no-repeat;
+}
+.rk-brick-body {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+  box-sizing: border-box; height: calc(var(--brick-height) * var(--tall, 1));
+  padding: 0 var(--space-3) 5px;
+  background: var(--brick); color: var(--label);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--brick-lip), var(--brick-lift);
+  white-space: nowrap;
+  transition: box-shadow 140ms cubic-bezier(.2,.8,.2,1);
+}
+
+/* Live bricks lift, seat and snap */
+.rk-live { cursor: pointer; }
+.rk-live:hover { translate: 0 -2px; transition-duration: 140ms; transition-timing-function: cubic-bezier(.2,.8,.2,1); }
+.rk-live:active { translate: 0 4px; transition: translate 70ms ease-out; }
+.rk-live:active .rk-brick-body { box-shadow: var(--brick-lip-pressed); transition-duration: 70ms; }
+.rk-live:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: var(--radius-sm); }
+.rk-drag { cursor: grab; touch-action: none; }
+.rk-brick.rk-dragging { cursor: grabbing; z-index: 20; translate: 0 -6px; rotate: -2deg; scale: 1.04; transition: translate 140ms, rotate 140ms, scale 140ms; }
+.rk-brick.rk-dragging .rk-brick-body { box-shadow: var(--brick-lip), var(--brick-drop); }
+
+/* BrickButton */
+.rk-btn { width: auto; min-width: calc(3 * var(--stud-pitch)); font: inherit; }
+.rk-btn .rk-brick-body { height: 44px; padding: 0 var(--space-4) 5px; }
+.rk-btn-sm .rk-brick-body { height: 32px; padding: 0 var(--space-3) 5px; font-size: 14px; }
+.rk-btn-lg .rk-brick-body { height: 56px; padding: 0 var(--space-6) 5px; font-size: 17px; }
+/* Button anatomy: a row of studs that pop in a wave, a label that rolls, an arrow that swaps, a magnetic pull */
+.rk-btn { transform: translate3d(var(--bx, 0px), var(--by, 0px), 0); transition: translate 260ms cubic-bezier(.34,1.56,.64,1), transform 420ms cubic-bezier(.2,.8,.2,1), scale 260ms cubic-bezier(.34,1.56,.64,1); }
+.rk-studs-row { display: flex; justify-content: space-around; height: var(--stud-h); padding: 0 2px; }
+.rk-studs-row i { display: block; width: var(--stud-size); height: 100%; border-radius: var(--radius-xs) var(--radius-xs) 0 0; background: linear-gradient(180deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px), var(--brick); transition: translate 320ms cubic-bezier(.34,1.56,.64,1) calc(var(--k, 0) * 28ms); }
+.rk-btn.rk-live:hover .rk-studs-row i { translate: 0 -3px; }
+.rk-btn.rk-live:active .rk-studs-row i { translate: 0 0; transition-delay: 0ms; }
+.rk-roll { position: relative; display: inline-flex; flex-direction: column; height: 20px; overflow: hidden; }
+.rk-roll > span { display: block; line-height: 20px; white-space: nowrap; transition: translate 480ms cubic-bezier(.7,0,.2,1); }
+.rk-btn-lg .rk-roll { height: 22px; }
+.rk-btn-lg .rk-roll > span { line-height: 22px; }
+.rk-btn.rk-live:hover .rk-roll > span { translate: 0 -100%; }
+.rk-btn-icon { position: relative; display: inline-block; width: 1em; height: 20px; overflow: hidden; font-weight: 500; }
+.rk-icon-a, .rk-icon-b { position: absolute; inset: 0; display: grid; place-items: center; transition: translate 480ms cubic-bezier(.7,0,.2,1), rotate 600ms cubic-bezier(.7,0,.2,1), opacity 240ms; }
+.rk-icon-ne .rk-icon-b { translate: -130% 130%; }
+.rk-icon-se .rk-icon-b { translate: -130% -130%; }
+.rk-icon-e .rk-icon-b { translate: -130% 0; }
+.rk-icon-s .rk-icon-b { translate: 0 -130%; }
+.rk-icon-n .rk-icon-b { translate: 0 130%; }
+.rk-icon-fade .rk-icon-b { opacity: 0; }
+.rk-btn.rk-live:hover .rk-icon-ne .rk-icon-a { translate: 130% -130%; }
+.rk-btn.rk-live:hover .rk-icon-se .rk-icon-a { translate: 130% 130%; }
+.rk-btn.rk-live:hover .rk-icon-e .rk-icon-a { translate: 130% 0; }
+.rk-btn.rk-live:hover .rk-icon-s .rk-icon-a { translate: 0 130%; }
+.rk-btn.rk-live:hover .rk-icon-n .rk-icon-a { translate: 0 -130%; }
+.rk-btn.rk-live:hover .rk-icon-fade .rk-icon-a { rotate: 360deg; }
+.rk-btn.rk-live:hover .rk-btn-icon:not(.rk-icon-fade) .rk-icon-b { translate: 0 0; }
+.rk-btn[disabled] { cursor: not-allowed; }
+.rk-btn[disabled] .rk-brick-body { box-shadow: var(--brick-lip); }
+
+/* BrickToggle */
+.rk-toggle { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; color: var(--ink); font-size: 15px; line-height: 20px; }
+.rk-toggle-track {
+  position: relative; flex: none; box-sizing: border-box; width: 64px; height: 36px; margin: 0; padding: 0;
+  border: 1px solid var(--ink-muted); border-radius: var(--radius-sm);
+  background-color: var(--surface-sunken);
+  background-image: radial-gradient(circle, var(--line) 0 3px, transparent 3.5px);
+  background-size: var(--stud-pitch) var(--stud-pitch); background-position: 1px 7px;
+  cursor: pointer;
+}
+.rk-toggle-track:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.rk-toggle-knob { position: absolute; left: 3px; bottom: 4px; width: 26px; pointer-events: none; transition: translate 260ms cubic-bezier(.34,1.56,.64,1); }
+.rk-toggle-knob .rk-brick-body { height: 21px; padding: 0 0 5px; }
+.rk-on .rk-toggle-knob { translate: 29px 0; }
+.rk-toggle-track:active .rk-toggle-knob .rk-brick-body { box-shadow: var(--brick-lip-pressed); }
+.rk-toggle-disabled { opacity: .5; cursor: not-allowed; }
+
+/* Mini bricks inside PartsList */
+.rk-mini { --stud-pitch: 9px; --stud-size: 5px; --brick-height: 13px; --stud-h: 3px; flex: none; }
+.rk-mini .rk-brick-body { padding: 0 0 3px; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .35); }
+
+/* PartsList: the manual's callout box */
+.rk-parts { box-sizing: border-box; background: var(--callout); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4) var(--space-4); color: var(--ink); }
+.rk-parts-title { display: block; margin-bottom: var(--space-2); color: var(--ink-muted); text-transform: uppercase; }
+.rk-parts-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.rk-part { display: inline-flex; align-items: center; gap: var(--space-2); font-size: 14px; line-height: 20px; }
+.rk-part-count { color: var(--ink-muted); }
+
+/* BuildCard: one page of the booklet */
+.rk-build {
+  display: flex; flex-direction: column; gap: var(--space-4); box-sizing: border-box; min-width: 0;
+  padding: var(--space-6); background: var(--surface-raised); color: var(--ink);
+  border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--page);
+  transition: translate 260ms cubic-bezier(.34,1.56,.64,1), rotate 260ms cubic-bezier(.34,1.56,.64,1);
+}
+.rk-build:hover { translate: 0 -4px; rotate: -.4deg; }
+.rk-build-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
+.rk-build-step { font-variant-numeric: tabular-nums; }
+.rk-build-meta { color: var(--ink-muted); text-transform: uppercase; }
+.rk-build-art {
+  position: relative; display: flex; align-items: flex-end; justify-content: center; gap: 0;
+  min-height: 180px; box-sizing: border-box; padding: var(--space-6); overflow: hidden;
+  border-radius: var(--radius-sm); background-color: var(--surface-sunken);
+  background-image: radial-gradient(circle, var(--line) 0 2px, transparent 2.5px);
+  background-size: var(--stud-pitch) var(--stud-pitch);
+}
+.rk-build-title { margin: 0; }
+.rk-build-desc { margin: 0; color: var(--ink-muted); }
+.rk-build-links { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); }
+
+/* Baseplate: the hero ground */
+.rk-baseplate {
+  position: relative; isolation: isolate; overflow: hidden; box-sizing: border-box;
+  padding: var(--space-10); border-radius: var(--radius-lg);
+  color: var(--brick-label-light);
+  background-color: var(--baseplate);
+  background-image:
+    radial-gradient(circle at 40% 38%, rgba(255, 255, 255, .16) 0 2px, transparent 2.5px),
+    radial-gradient(circle, var(--baseplate-stud) 0 calc(var(--stud-size) / 2 - .5px), transparent calc(var(--stud-size) / 2)),
+    radial-gradient(circle, rgba(0, 0, 0, .22) 0 calc(var(--stud-size) / 2 - .5px), transparent calc(var(--stud-size) / 2));
+  background-size: var(--stud-pitch) var(--stud-pitch);
+  background-position: 0 0, 0 0, 1px 1.5px;
+}
+.rk-baseplate-glow {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0;
+  background-image: radial-gradient(circle, var(--baseplate-glow) 0 calc(var(--stud-size) / 2 - .5px), transparent calc(var(--stud-size) / 2));
+  background-size: var(--stud-pitch) var(--stud-pitch);
+  -webkit-mask: radial-gradient(circle 150px at var(--mx) var(--my), #000 0, rgba(0, 0, 0, .45) 45%, transparent 100%);
+          mask: radial-gradient(circle 150px at var(--mx) var(--my), #000 0, rgba(0, 0, 0, .45) 45%, transparent 100%);
+  transition: opacity 400ms ease, --mx 180ms cubic-bezier(.2,.8,.2,1), --my 180ms cubic-bezier(.2,.8,.2,1);
+}
+.rk-lit .rk-baseplate-glow { opacity: .85; }
+.rk-baseplate-content { position: relative; z-index: 1; height: 100%; }
+
+/* BrickStack: experiments as a tower, first item at the bottom */
+.rk-stack { list-style: none; margin: 0; padding: var(--space-6) 0 0 calc(2 * var(--stud-pitch)); display: flex; flex-direction: column-reverse; align-items: flex-start; }
+.rk-stack-item {
+  position: relative; display: flex; align-items: center; gap: var(--space-4);
+  margin-left: calc(var(--off, 0) * var(--stud-pitch));
+  opacity: 0; translate: 0 -96px;
+  transition: translate 520ms cubic-bezier(.34,1.4,.64,1) calc(var(--i) * 70ms), opacity 160ms linear calc(var(--i) * 70ms);
+}
+.rk-stack-item + .rk-stack-item { margin-bottom: -5px; }
+.rk-shown .rk-stack-item { opacity: 1; translate: 0 0; }
+.rk-stack-meta { padding-top: 5px; color: var(--ink-muted); white-space: nowrap; opacity: 0; translate: -6px 0; transition: opacity 160ms linear, translate 220ms cubic-bezier(.2,.8,.2,1); }
+.rk-stack-item:hover > .rk-brick { translate: 12px -2px; }
+.rk-stack-item:hover .rk-stack-meta, .rk-stack-item:focus-within .rk-stack-meta { opacity: 1; translate: 0 0; }
+@media (hover: none) { .rk-stack-meta { opacity: 1; translate: 0 0; white-space: normal; } }
+
+/* FlipTile: a printed tile with a note on the back */
+.rk-flip {
+  position: relative; display: inline-block; vertical-align: top; width: 260px;
+  margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  rotate: var(--rot, -3deg);
+  transform: perspective(1000px) rotateX(var(--tx, 0deg)) rotateY(var(--ty, 0deg));
+  transform-style: preserve-3d;
+  transition: rotate 260ms cubic-bezier(.34,1.56,.64,1), translate 260ms cubic-bezier(.34,1.56,.64,1), transform 180ms ease-out;
+}
+.rk-flip:hover { rotate: 0deg; translate: 0 -4px; }
+.rk-flip:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: var(--radius-md); }
+.rk-flip-inner { position: relative; display: block; transform-style: preserve-3d; transition: transform 600ms cubic-bezier(.2,.8,.2,1); }
+.rk-flipped .rk-flip-inner { transform: rotateY(180deg); }
+.rk-flip-face { display: block; box-sizing: border-box; border-radius: var(--radius-md); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.rk-flip-front { padding: var(--space-3) var(--space-3) var(--space-4); background: var(--surface-raised); border: 1px solid var(--line); box-shadow: var(--page); }
+.rk-flip-media { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--radius-sm); background: var(--surface-sunken); }
+.rk-flip-media > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.rk-flip-caption { display: block; margin-top: var(--space-3); color: var(--ink-muted); }
+.rk-flip-back {
+  position: absolute; inset: 0; transform: rotateY(180deg);
+  display: flex; flex-direction: column; justify-content: center; gap: var(--space-2);
+  padding: var(--space-6); background: var(--brick-yellow); color: var(--brick-label-dark);
+  box-shadow: var(--brick-lip), var(--page);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-brick, .rk-build, .rk-flip, .rk-flip-inner, .rk-stack-item, .rk-toggle-knob, .rk-btn-icon, .rk-baseplate-glow, .rk-studs-row i, .rk-roll > span, .rk-icon-a, .rk-icon-b { transition-duration: 1ms !important; transition-delay: 0ms !important; }
+  .rk-live:hover, .rk-build:hover, .rk-flip:hover, .rk-brick.rk-dragging { translate: none; rotate: none; scale: none; }
+}

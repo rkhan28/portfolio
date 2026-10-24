@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="I’m an engineer in Toronto. I build web apps, experiment with AI, and automate the things I’d rather not do twice." />
+    <meta name="theme-color" content="#2a7f47" />
+
+    <!-- Theme before first paint: the visitor's choice, else their system setting -->
+    <script>
+      try {
+        var t = localStorage.getItem('rk-theme')
+        if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.dataset.theme = t
+      } catch (e) {
+        document.documentElement.dataset.theme = 'light'
+      }
+    </script>
+
+    <!-- rk. bricks type: Bricolage Grotesque (display), DM Sans (text), DM Mono (labels) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=DM+Mono:wght@500&family=DM+Sans:opsz,wght@9..40,400..700&display=swap" rel="stylesheet">
+
+    <title>Rahmat Khan — Engineer & builder</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

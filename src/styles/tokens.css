@@ -1,0 +1,83 @@
+/* rk. bricks — generated from tokens.json */
+:root, [data-theme="light"] {
+  color-scheme: light;
+  --surface: #f7f5ef;
+  --surface-raised: #ffffff;
+  --surface-sunken: #edeae1;
+  --callout: #dde9f3;
+  --line: #d9d5c9;
+  --ink: #1c1f1a;
+  --ink-muted: #5c6057;
+  --accent-text: #b5211a;
+  --focus: #1e5fc6;
+  --baseplate: #2a7f47;
+  --baseplate-stud: #35924f;
+  --baseplate-glow: #9be0ae;
+  --brick-red: #d42a1e;
+  --brick-yellow: #f6c624;
+  --brick-blue: #1e5fc6;
+  --brick-green: #23854b;
+  --brick-tan: #e2cb98;
+  --brick-white: #f4f3ee;
+  --brick-black: #22241f;
+  --brick-gray: #9ea3a6;
+  --brick-label-light: #ffffff;
+  --brick-label-dark: #1c1f1a;
+  --accent: var(--brick-red);
+  --brick-lip: inset 0 -5px 0 rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  --brick-lip-pressed: inset 0 -1px 0 rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  --brick-lift: 0 2px 0 rgba(28, 31, 26, 0.18), 0 10px 18px -6px rgba(28, 31, 26, 0.28);
+  --brick-drop: 0 16px 28px -8px rgba(28, 31, 26, 0.35);
+  --page: 0 1px 0 rgba(28, 31, 26, 0.06), 0 18px 40px -20px rgba(28, 31, 26, 0.25);
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #121411;
+  --surface-raised: #1c1f1b;
+  --surface-sunken: #0b0d0a;
+  --callout: #1a2733;
+  --line: #30342d;
+  --ink: #f3f2ec;
+  --ink-muted: #a6aa9f;
+  --accent-text: #ff8577;
+  --focus: #8ab4ff;
+  --baseplate: #1f5e37;
+  --baseplate-stud: #287043;
+  --baseplate-glow: #5cc585;
+  --brick-lift: 0 2px 0 rgba(0, 0, 0, 0.5), 0 10px 18px -6px rgba(0, 0, 0, 0.7);
+  --brick-drop: 0 16px 28px -8px rgba(0, 0, 0, 0.8);
+  --page: 0 1px 0 rgba(0, 0, 0, 0.4), 0 18px 40px -20px rgba(0, 0, 0, 0.8);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-10: 40px;
+  --space-16: 64px;
+  --space-30: 120px;
+  --stud-pitch: 20px;
+  --stud-size: 12px;
+  --plate-height: 8px;
+  --brick-height: 24px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 10px;
+  --radius-lg: 20px;
+  --radius-round: 9999px;
+  --font-display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+}
+.display-xl { font-family: var(--font-display); font-size: 112px; line-height: 0.92; font-weight: 800; letter-spacing: -0.04em; }
+.display-lg { font-family: var(--font-display); font-size: 72px; line-height: 0.95; font-weight: 800; letter-spacing: -0.03em; }
+.heading { font-family: var(--font-display); font-size: 40px; line-height: 44px; font-weight: 700; letter-spacing: -0.02em; }
+.title { font-family: var(--font-display); font-size: 24px; line-height: 28px; font-weight: 700; letter-spacing: -0.01em; }
+.step { font-family: var(--font-display); font-size: 48px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; }
+.lead { font-family: var(--font-sans); font-size: 20px; line-height: 32px; font-weight: 400; letter-spacing: -0.01em; }
+.body { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 400; }
+.button { font-family: var(--font-sans); font-size: 15px; line-height: 20px; font-weight: 600; }
+.small { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 400; }
+.label { font-family: var(--font-mono); font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.06em; }
+.count { font-family: var(--font-mono); font-size: 13px; line-height: 16px; font-weight: 500; }
