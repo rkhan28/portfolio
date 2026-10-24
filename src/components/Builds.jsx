@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { AnimatePresence, LayoutGroup, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
-import { BrickButton, PartsList } from '../bricks'
+import { AnimatePresence, LayoutGroup, motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { Brick, BrickButton, PartsList } from '../bricks'
 import { builds } from '../data/content.js'
 import { usePrefs } from '../hooks/usePrefs.jsx'
 import { useSmoothScroll } from '../motion/SmoothScroll.jsx'
@@ -8,111 +8,98 @@ import { OnboardyArt, PhishArt, TransitArt } from './Art.jsx'
 import RevealWords from './RevealWords.jsx'
 
 const ART = { onboardy: OnboardyArt, 'ttc-pulse': TransitArt, phishguard: PhishArt }
+const PART_COLORS = ['blue', 'red', 'yellow', 'green', 'tan', 'gray']
 
-// The section pins while it plays. The first part of the scroll opens the pile into a wheel;
-// the rest turns the wheel so each polaroid gets its moment at the top.
-const OPEN = 0.22
+// The section pins while the reveal plays: the stacked pile bursts apart (to BURST),
+// then every card flies into its place in the row (by SETTLED) and stays there.
+const BURST = 0.38
+const SETTLED = 0.82
 const clamp01 = (v) => Math.max(0, Math.min(1, v))
 const easeOut = (t) => 1 - Math.pow(1 - t, 3)
-const openOf = (p) => easeOut(clamp01(p / OPEN))
-const spinOf = (p) => clamp01((p - OPEN) / (1 - OPEN))
-// where each polaroid lies in the pile before it opens, and its resting tilt on the wheel
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+const lerp = (a, b, t) => a + (b - a) * t
+// how each card lies in the pile, and how it tumbles during the burst
 const PILE = [
-  { x: -18, y: 10, r: -9 },
-  { x: 14, y: -8, r: 7 },
-  { x: 4, y: 16, r: -3 },
-  { x: -10, y: -14, r: 11 },
-  { x: 20, y: 6, r: -12 },
+  { x: -14, y: 10, r: -8 },
+  { x: 12, y: -10, r: 7 },
+  { x: 2, y: 14, r: -3 },
+  { x: -8, y: -12, r: 10 },
+  { x: 16, y: 4, r: -11 },
 ]
-const TILT = [-4, 3, -2, 5, -3, 2, -5, 4]
+const SPIN = [-14, 12, -8, 16, -12, 9]
 
-// Polaroid and wheel sizes follow the stage, and get tighter as projects are added.
-function useWheel(ref, n) {
-  const [g, setG] = useState({ box: 560, R: 175, w: 168, h: 198, phone: false })
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return undefined
-    const measure = () => {
-      const box = el.clientWidth
-      const phone = window.innerWidth < 900
-      const few = n <= 4
-      const w = Math.round(box * (phone ? (few ? 0.37 : 0.28) : few ? 0.34 : 0.24))
-      const R = Math.round(box * (phone ? (few ? 0.3 : 0.36) : few ? 0.3 : 0.37))
-      setG({ box, R, w, h: Math.round(w * 1.2), phone })
-    }
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [ref, n])
-  return g
-}
-
-function Polaroid({ build, index, n, progress, geo, hidden, onOpen }) {
+function Card({ build, index, n, progress, offsets, hidden, onOpen }) {
+  const { sound } = usePrefs()
   const Art = ART[build.id]
-  const geoRef = useRef(geo)
-  geoRef.current = geo
-  const step = 360 / n
+  const off = useRef(offsets)
+  off.current = offsets
   const pile = PILE[index % PILE.length]
-  const tilt = TILT[index % TILT.length]
+  // burst direction: spread around the circle, starting up and to the left
+  const a = ((-150 + (index * 360) / Math.max(n, 3)) * Math.PI) / 180
 
-  // angle on the wheel, starting at the top and turning anticlockwise as you scroll
-  const angle = (p) => -90 + index * step - spinOf(p) * (n - 1) * step
-  // 1 when this polaroid is at the top of the wheel, falling to 0 a slot away
-  const near = (p) => {
-    const a = (((angle(p) + 90) % 360) + 360) % 360
-    return Math.max(0, 1 - Math.min(a, 360 - a) / step)
+  // where the card is, relative to its own slot in the row (0, 0 = lined up)
+  const at = (p) => {
+    const d = off.current[index] || { x: 0, y: 0, w: 300 }
+    const R = Math.max(160, d.w * 0.7)
+    const pileX = d.x + pile.x
+    const pileY = d.y + pile.y
+    const burstX = d.x + Math.cos(a) * R
+    const burstY = d.y + Math.sin(a) * R * 0.55
+    if (p <= BURST) {
+      const t = easeOut(clamp01(p / BURST))
+      return { x: lerp(pileX, burstX, t), y: lerp(pileY, burstY, t), r: lerp(pile.r, SPIN[index % SPIN.length], t), s: lerp(0.62, 0.74, t) }
+    }
+    const t = easeInOut(clamp01((p - BURST) / (SETTLED - BURST)))
+    return { x: lerp(burstX, 0, t), y: lerp(burstY, 0, t), r: lerp(SPIN[index % SPIN.length], 0, t), s: lerp(0.74, 1, t) }
   }
-  const x = useTransform(progress, (p) => {
-    const o = openOf(p)
-    return o * geoRef.current.R * Math.cos((angle(p) * Math.PI) / 180) + (1 - o) * pile.x
-  })
-  const y = useTransform(progress, (p) => {
-    const o = openOf(p)
-    return o * geoRef.current.R * Math.sin((angle(p) * Math.PI) / 180) + (1 - o) * pile.y
-  })
-  const rotate = useTransform(progress, (p) => {
-    const o = openOf(p)
-    return (1 - o) * pile.r + o * tilt * (1 - near(p) * 0.7)
-  })
-  const scale = useTransform(progress, (p) => {
-    const o = openOf(p)
-    return 0.8 + 0.08 * o + 0.2 * near(p) * o
-  })
-  const zIndex = useTransform(progress, (p) => Math.round(near(p) * 10) + (openOf(p) < 0.5 ? index : 1))
+  const x = useTransform(progress, (p) => at(p).x)
+  const y = useTransform(progress, (p) => at(p).y)
+  const rotate = useTransform(progress, (p) => at(p).r)
+  const scale = useTransform(progress, (p) => at(p).s)
+  const zIndex = useTransform(progress, (p) => (p < SETTLED ? n - index : 1))
 
-  const photoW = geo.w - 16
-  const photoH = geo.h - 8 - (geo.phone ? 30 : 38)
-  const artScale = Math.min(photoW / 250, photoH / 180)
   const no = String(build.step).padStart(2, '0')
-
+  // the brick photo is drawn at 250x180 and scaled to fill the card's 16:10 frame
+  const photoW = Math.max(160, (offsets[index]?.w || 300) - 20)
+  const artScale = Math.min(photoW / 250, (photoW * 0.62) / 180, 1.7)
   return (
-    <motion.div className="pol-slot" style={{ x, y, rotate, scale, zIndex, width: geo.w, height: geo.h, marginLeft: -geo.w / 2, marginTop: -geo.h / 2 }}>
-      <div className="pol-float" style={{ '--fd': `${index * -1.7}s` }}>
-        <motion.button
-          type="button"
-          layoutId={`build-${build.id}`}
-          className={`polaroid pol-${build.id}`}
-          style={{ opacity: hidden ? 0 : 1 }}
-          onClick={() => onOpen(build)}
-          aria-label={`${build.title}: open the details`}
-        >
-          <span className="pol-photo">
-            <span className="pol-art" style={{ '--art-scale': artScale.toFixed(3) }}>
-              {Art ? <Art /> : null}
-            </span>
+    <motion.div className="deck-move" style={{ x, y, rotate, scale, zIndex }}>
+      <motion.article layoutId={`build-${build.id}`} className={`deck-card deck-${build.id}`} style={{ opacity: hidden ? 0 : 1 }}>
+        <button type="button" className="deck-photo" onClick={() => onOpen(build)} aria-label={`${build.title}: open the details`}>
+          <span className="deck-art" style={{ '--art-scale': artScale.toFixed(3) }}>
+            {Art ? <Art /> : null}
           </span>
-          <span className="pol-caption">
-            <span className="pol-no">No. {no}</span>
-            <span className="pol-title">{build.title}</span>
-          </span>
-        </motion.button>
-      </div>
+        </button>
+        <div className="deck-body">
+          <div className="deck-meta label">
+            <span>No. {no}</span>
+            <span>{build.kind}</span>
+          </div>
+          <h3 className="title deck-title">{build.title}</h3>
+          <p className="body muted deck-desc">{build.description}</p>
+          <ul className="deck-parts">
+            {build.parts.map((part, i) => (
+              <li key={part}>
+                <Brick color={PART_COLORS[i % PART_COLORS.length]} studs={2} className="rk-mini" />
+                {part}
+              </li>
+            ))}
+          </ul>
+          <div className="deck-actions">
+            <BrickButton size="sm" color="blue" href={build.github} target="_blank" icon="↗" sound={sound}>
+              GitHub
+            </BrickButton>
+            <BrickButton size="sm" color="white" icon="→" onClick={() => onOpen(build)} sound={sound}>
+              Details
+            </BrickButton>
+          </div>
+        </div>
+      </motion.article>
     </motion.div>
   )
 }
 
-// The polaroid grows into a full instruction page, and shrinks back into the wheel on close.
+// The card grows into a full instruction page, and shrinks back into the row on close.
 function DetailsPage({ build, onClose }) {
   const { sound } = usePrefs()
   const { lenis } = useSmoothScroll()
@@ -169,111 +156,102 @@ function DetailsPage({ build, onClose }) {
 }
 
 export default function Builds() {
-  const { sound } = usePrefs()
-  const { lenis, scrollTo } = useSmoothScroll()
   const reduced = useReducedMotion()
   const section = useRef(null)
-  const stage = useRef(null)
+  const row = useRef(null)
   const n = builds.length
-  const geo = useWheel(stage, n)
+  const [offsets, setOffsets] = useState([])
   const [open, setOpen] = useState(null)
-  const [active, setActive] = useState(0)
-  const [opened, setOpened] = useState(false)
+  const [settled, setSettled] = useState(false)
+  const [current, setCurrent] = useState(0)
+  const [overflowing, setOverflowing] = useState(false)
 
   const { scrollYProgress } = useScroll({ target: section, offset: ['start start', 'end end'] })
-  const smooth = useSpring(scrollYProgress, { stiffness: 120, damping: 24, mass: 0.6 })
-  // with reduced motion the wheel stands open and still; the arrows choose the project
-  const fixed = useMotionValue(OPEN)
-  useEffect(() => fixed.set(OPEN + ((1 - OPEN) * active) / Math.max(1, n - 1)), [fixed, active, n])
-  const wheel = reduced ? fixed : smooth
-  const dial = useTransform(wheel, (p) => -spinOf(p) * (n - 1) * (360 / n))
+  const smooth = useSpring(scrollYProgress, { stiffness: 130, damping: 26, mass: 0.6 })
+  const progress = useTransform(smooth, (p) => (reduced ? 1 : p))
 
-  useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    if (p > 0.04 && !opened) setOpened(true)
-    if (reduced) return
-    const k = n === 1 ? 0 : Math.round(spinOf(p) * (n - 1))
-    if (k !== active) setActive(k)
-  })
-
-  // the arrows scroll to the spot where that project sits at the top
-  function go(k) {
-    const next = (k + n) % n
-    if (reduced || !section.current) {
-      setActive(next)
-      return
+  // Each card's distance from its slot to the middle of the row: that's where the pile sits.
+  useLayoutEffect(() => {
+    const el = row.current
+    if (!el) return undefined
+    const measure = () => {
+      const r = el.getBoundingClientRect()
+      const cx = r.left + el.clientWidth / 2
+      const cy = r.top + r.height / 2
+      const slots = [...el.querySelectorAll('.deck-slot')]
+      setOffsets(
+        slots.map((s) => {
+          const b = s.getBoundingClientRect()
+          return { x: cx - (b.left + b.width / 2) + el.scrollLeft, y: cy - (b.top + b.height / 2), w: b.width }
+        }),
+      )
+      setOverflowing(el.scrollWidth > el.clientWidth + 4)
     }
-    const el = section.current
-    const top = el.getBoundingClientRect().top + window.scrollY
-    const span = el.offsetHeight - window.innerHeight
-    const p = OPEN + ((1 - OPEN) * next) / Math.max(1, n - 1)
-    if (lenis) lenis.scrollTo(top + span * p, { duration: 1.1 })
-    else scrollTo(top + span * p)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [n])
+
+  useMotionValueEvent(smooth, 'change', (p) => {
+    const done = reduced || p >= SETTLED - 0.02
+    if (done !== settled) setSettled(done)
+  })
+  useEffect(() => {
+    if (reduced) setSettled(true)
+  }, [reduced])
+
+  // Phones (and wide decks later) swipe; the dots follow and jump.
+  function onRowScroll() {
+    const el = row.current
+    const first = el?.querySelector('.deck-slot')
+    if (!first) return
+    const step = first.getBoundingClientRect().width + parseFloat(getComputedStyle(el).columnGap || '0')
+    setCurrent(Math.min(n - 1, Math.round(el.scrollLeft / step)))
+  }
+  function jump(k) {
+    const el = row.current
+    const slot = el?.querySelectorAll('.deck-slot')[k]
+    if (!slot) return
+    el.scrollTo({ left: slot.offsetLeft - el.offsetLeft - (el.clientWidth - slot.clientWidth) / 2, behavior: reduced ? 'auto' : 'smooth' })
   }
 
-  const b = builds[active]
   return (
-    <section id="builds" ref={section} className={'wheel-section' + (reduced ? ' wheel-still' : '')} style={{ '--n': n }}>
-      <div className="wheel-sticky">
-        <div className="wheel-head">
-          <span className="label eyebrow">Selected builds · {n} sets</span>
-          <RevealWords as="h2" className="heading" text="Take a look." />
+    <section id="builds" ref={section} className={'deck-section' + (reduced ? ' deck-still' : '')} style={{ '--n': n }}>
+      <div className="deck-sticky">
+        <div className="deck-head">
+          <div>
+            <span className="label eyebrow">Selected builds · {n} sets</span>
+            <RevealWords as="h2" className="heading" text="Take a look." />
+          </div>
+          <span className={'label deck-hint' + (settled ? ' is-settled' : '')} aria-hidden="true">
+            {settled ? (overflowing ? 'Swipe for more' : 'Click a card for the details') : 'Keep scrolling'}
+          </span>
         </div>
 
         <LayoutGroup>
-          <div className="wheel-stage" ref={stage} data-in={opened || reduced || undefined}>
-            <motion.div className="wheel-dial" style={{ rotate: dial }} aria-hidden="true">
-              {builds.map((x, i) => (
-                <span key={x.id} className="wheel-tick" style={{ rotate: `${(360 / n) * i}deg` }} />
-              ))}
-            </motion.div>
-            {builds.map((x, i) => (
-              <Polaroid key={x.id} build={x} index={i} n={n} progress={wheel} geo={geo} hidden={open?.id === x.id} onOpen={setOpen} />
+          <div
+            ref={row}
+            className={'deck-row' + (settled ? ' is-settled' : '')}
+            data-in={settled || undefined}
+            onScroll={settled ? onRowScroll : undefined}
+          >
+            {builds.map((b, i) => (
+              <div className="deck-slot" key={b.id}>
+                <Card build={b} index={i} n={n} progress={progress} offsets={offsets} hidden={open?.id === b.id} onOpen={setOpen} />
+              </div>
             ))}
-            <span className="wheel-hint label" aria-hidden="true">
-              {opened ? 'Keep scrolling to spin' : 'Scroll to deal'}
-            </span>
           </div>
           <AnimatePresence>{open ? <DetailsPage key={open.id} build={open} onClose={() => setOpen(null)} /> : null}</AnimatePresence>
         </LayoutGroup>
 
-        <div className="wheel-info" aria-live="polite">
-          <div className="wheel-count label">
-            <span className="wheel-count-now" key={active}>
-              {String(active + 1).padStart(2, '0')}
-            </span>
-            <span className="muted"> / {String(n).padStart(2, '0')} · {b.kind}</span>
+        {overflowing ? (
+          <div className={'deck-dots' + (settled ? ' is-settled' : '')} role="tablist" aria-label="Projects">
+            {builds.map((b, i) => (
+              <button key={b.id} type="button" role="tab" aria-selected={current === i} aria-label={b.title} className={current === i ? 'is-on' : undefined} onClick={() => jump(i)} />
+            ))}
           </div>
-          {/* keyed, not queued: a fast scroll lands straight on the current project */}
-          <motion.div
-            key={b.id}
-            className="wheel-text"
-            initial={{ y: 18, opacity: 0, filter: 'blur(6px)' }}
-            animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-            transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
-          >
-            <h3 className="heading wheel-title">{b.title}</h3>
-            <p className="body muted wheel-desc">{b.description}</p>
-            <PartsList parts={b.parts} className="wheel-parts" />
-          </motion.div>
-          <div className="wheel-actions">
-            <BrickButton size="sm" color="blue" href={b.github} target="_blank" icon="↗" sound={sound}>
-              GitHub
-            </BrickButton>
-            <BrickButton size="sm" color="yellow" icon="→" onClick={() => setOpen(b)} sound={sound}>
-              Details
-            </BrickButton>
-            <span className="wheel-arrows">
-              <BrickButton size="sm" color="white" onClick={() => go(active - 1)} sound={sound}>
-                <span aria-hidden="true">←</span>
-                <span className="visually-hidden">Previous project</span>
-              </BrickButton>
-              <BrickButton size="sm" color="white" onClick={() => go(active + 1)} sound={sound}>
-                <span aria-hidden="true">→</span>
-                <span className="visually-hidden">Next project</span>
-              </BrickButton>
-            </span>
-          </div>
-        </div>
+        ) : null}
       </div>
     </section>
   )
