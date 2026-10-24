@@ -75,7 +75,7 @@ export default function Nav() {
     e.preventDefault()
     setMenu(false)
     // let the sheet start closing before the page moves
-    setTimeout(() => scrollTo(`#${id}`), 120)
+    setTimeout(() => (id === 'builds' ? window.dispatchEvent(new CustomEvent('rk:show-build')) : scrollTo(`#${id}`)), 120)
   }
 
   return (

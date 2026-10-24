@@ -44,7 +44,7 @@
 
 /* Live bricks lift, seat and snap */
 .rk-live { cursor: pointer; }
-.rk-live:hover { translate: 0 -2px; transition-duration: 140ms; transition-timing-function: cubic-bezier(.2,.8,.2,1); }
+@media (hover: hover) { .rk-live:hover { translate: 0 -2px; transition-duration: 140ms; transition-timing-function: cubic-bezier(.2,.8,.2,1); } }
 .rk-live:active { translate: 0 4px; transition: translate 70ms ease-out; }
 .rk-live:active .rk-brick-body { box-shadow: var(--brick-lip-pressed); transition-duration: 70ms; }
 .rk-live:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: var(--radius-sm); }
@@ -61,13 +61,13 @@
 .rk-btn { transform: translate3d(var(--bx, 0px), var(--by, 0px), 0); transition: translate 260ms cubic-bezier(.34,1.56,.64,1), transform 420ms cubic-bezier(.2,.8,.2,1), scale 260ms cubic-bezier(.34,1.56,.64,1); }
 .rk-studs-row { display: flex; justify-content: space-around; height: var(--stud-h); padding: 0 2px; }
 .rk-studs-row i { display: block; width: var(--stud-size); height: 100%; border-radius: var(--radius-xs) var(--radius-xs) 0 0; background: linear-gradient(180deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px), var(--brick); transition: translate 320ms cubic-bezier(.34,1.56,.64,1) calc(var(--k, 0) * 28ms); }
-.rk-btn.rk-live:hover .rk-studs-row i { translate: 0 -3px; }
+@media (hover: hover) { .rk-btn.rk-live:hover .rk-studs-row i { translate: 0 -3px; } }
 .rk-btn.rk-live:active .rk-studs-row i { translate: 0 0; transition-delay: 0ms; }
 .rk-roll { position: relative; display: inline-flex; flex-direction: column; height: 20px; overflow: hidden; }
 .rk-roll > span { display: block; line-height: 20px; white-space: nowrap; transition: translate 480ms cubic-bezier(.7,0,.2,1); }
 .rk-btn-lg .rk-roll { height: 22px; }
 .rk-btn-lg .rk-roll > span { line-height: 22px; }
-.rk-btn.rk-live:hover .rk-roll > span { translate: 0 -100%; }
+@media (hover: hover) { .rk-btn.rk-live:hover .rk-roll > span { translate: 0 -100%; } }
 .rk-btn-icon { position: relative; display: inline-block; width: 1em; height: 20px; overflow: hidden; font-weight: 500; }
 .rk-icon-a, .rk-icon-b { position: absolute; inset: 0; display: grid; place-items: center; transition: translate 480ms cubic-bezier(.7,0,.2,1), rotate 600ms cubic-bezier(.7,0,.2,1), opacity 240ms; }
 .rk-icon-ne .rk-icon-b { translate: -130% 130%; }
@@ -76,13 +76,13 @@
 .rk-icon-s .rk-icon-b { translate: 0 -130%; }
 .rk-icon-n .rk-icon-b { translate: 0 130%; }
 .rk-icon-fade .rk-icon-b { opacity: 0; }
-.rk-btn.rk-live:hover .rk-icon-ne .rk-icon-a { translate: 130% -130%; }
-.rk-btn.rk-live:hover .rk-icon-se .rk-icon-a { translate: 130% 130%; }
-.rk-btn.rk-live:hover .rk-icon-e .rk-icon-a { translate: 130% 0; }
-.rk-btn.rk-live:hover .rk-icon-s .rk-icon-a { translate: 0 130%; }
-.rk-btn.rk-live:hover .rk-icon-n .rk-icon-a { translate: 0 -130%; }
-.rk-btn.rk-live:hover .rk-icon-fade .rk-icon-a { rotate: 360deg; }
-.rk-btn.rk-live:hover .rk-btn-icon:not(.rk-icon-fade) .rk-icon-b { translate: 0 0; }
+@media (hover: hover) { .rk-btn.rk-live:hover .rk-icon-ne .rk-icon-a { translate: 130% -130%; } }
+@media (hover: hover) { .rk-btn.rk-live:hover .rk-icon-se .rk-icon-a { translate: 130% 130%; } }
+@media (hover: hover) { .rk-btn.rk-live:hover .rk-icon-e .rk-icon-a { translate: 130% 0; } }
+@media (hover: hover) { .rk-btn.rk-live:hover .rk-icon-s .rk-icon-a { translate: 0 130%; } }
+@media (hover: hover) { .rk-btn.rk-live:hover .rk-icon-n .rk-icon-a { translate: 0 -130%; } }
+@media (hover: hover) { .rk-btn.rk-live:hover .rk-icon-fade .rk-icon-a { rotate: 360deg; } }
+@media (hover: hover) { .rk-btn.rk-live:hover .rk-btn-icon:not(.rk-icon-fade) .rk-icon-b { translate: 0 0; } }
 .rk-btn[disabled] { cursor: not-allowed; }
 .rk-btn[disabled] .rk-brick-body { box-shadow: var(--brick-lip); }
 
@@ -121,7 +121,7 @@
   border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--page);
   transition: translate 260ms cubic-bezier(.34,1.56,.64,1), rotate 260ms cubic-bezier(.34,1.56,.64,1);
 }
-.rk-build:hover { translate: 0 -4px; rotate: -.4deg; }
+@media (hover: hover) { .rk-build:hover { translate: 0 -4px; rotate: -.4deg; } }
 .rk-build-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
 .rk-build-step { font-variant-numeric: tabular-nums; }
 .rk-build-meta { color: var(--ink-muted); text-transform: uppercase; }
@@ -171,8 +171,8 @@
 .rk-stack-item + .rk-stack-item { margin-bottom: -5px; }
 .rk-shown .rk-stack-item { opacity: 1; translate: 0 0; }
 .rk-stack-meta { padding-top: 5px; color: var(--ink-muted); white-space: nowrap; opacity: 0; translate: -6px 0; transition: opacity 160ms linear, translate 220ms cubic-bezier(.2,.8,.2,1); }
-.rk-stack-item:hover > .rk-brick { translate: 12px -2px; }
-.rk-stack-item:hover .rk-stack-meta, .rk-stack-item:focus-within .rk-stack-meta { opacity: 1; translate: 0 0; }
+@media (hover: hover) { .rk-stack-item:hover > .rk-brick { translate: 12px -2px; } }
+@media (hover: hover) { .rk-stack-item:hover .rk-stack-meta, .rk-stack-item:focus-within .rk-stack-meta { opacity: 1; translate: 0 0; } }
 @media (hover: none) { .rk-stack-meta { opacity: 1; translate: 0 0; white-space: normal; } }
 
 /* FlipTile: a printed tile with a note on the back */
@@ -185,7 +185,7 @@
   transform-style: preserve-3d;
   transition: rotate 260ms cubic-bezier(.34,1.56,.64,1), translate 260ms cubic-bezier(.34,1.56,.64,1), transform 180ms ease-out;
 }
-.rk-flip:hover { rotate: 0deg; translate: 0 -4px; }
+@media (hover: hover) { .rk-flip:hover { rotate: 0deg; translate: 0 -4px; } }
 .rk-flip:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: var(--radius-md); }
 .rk-flip-inner { position: relative; display: block; transform-style: preserve-3d; transition: transform 600ms cubic-bezier(.2,.8,.2,1); }
 .rk-flipped .rk-flip-inner { transform: rotateY(180deg); }

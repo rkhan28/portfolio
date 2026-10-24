@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { click } from '../bricks/util.js'
 import { usePrefs } from '../hooks/usePrefs.jsx'
-import { useSmoothScroll } from '../motion/SmoothScroll.jsx'
 
 // The 510 runs along the bottom of the hero forever. Hover to hold it at the stop; click to ride to TTC Pulse.
 export default function Streetcar() {
   const { sound } = usePrefs()
-  const { scrollTo } = useSmoothScroll()
   const [held, setHeld] = useState(false)
 
   function ding() {
@@ -28,7 +26,7 @@ export default function Streetcar() {
           onPointerLeave={() => setHeld(false)}
           onFocus={() => setHeld(true)}
           onBlur={() => setHeld(false)}
-          onClick={() => scrollTo('#ttc-pulse')}
+          onClick={() => window.dispatchEvent(new CustomEvent('rk:show-build', { detail: { id: 'ttc-pulse' } }))}
           aria-label="510 Spadina streetcar. Ride to TTC Pulse"
         >
           <span className="sc-pole" aria-hidden="true" />

@@ -28,7 +28,7 @@ const PILE = [
 ]
 const SPIN = [-14, 12, -8, 16, -12, 9]
 
-function Card({ build, index, n, progress, offsets, hidden, onOpen }) {
+function Card({ build, index, n, progress, offsets, hidden, picked, onOpen }) {
   const { sound } = usePrefs()
   const Art = ART[build.id]
   const off = useRef(offsets)
@@ -64,7 +64,7 @@ function Card({ build, index, n, progress, offsets, hidden, onOpen }) {
   const artScale = Math.min(photoW / 250, (photoW * 0.62) / 180, 1.7)
   return (
     <motion.div className="deck-move" style={{ x, y, rotate, scale, zIndex }}>
-      <motion.article layoutId={`build-${build.id}`} className={`deck-card deck-${build.id}`} style={{ opacity: hidden ? 0 : 1 }}>
+      <motion.article layoutId={`build-${build.id}`} className={`deck-card deck-${build.id}` + (picked ? ' is-picked' : '')} style={{ opacity: hidden ? 0 : 1 }}>
         <button type="button" className="deck-photo" onClick={() => onOpen(build)} aria-label={`${build.title}: open the details`}>
           <span className="deck-art" style={{ '--art-scale': artScale.toFixed(3) }}>
             {Art ? <Art /> : null}
@@ -107,6 +107,7 @@ function DetailsPage({ build, onClose }) {
 
   useEffect(() => {
     lenis?.stop()
+    document.documentElement.classList.add('modal-open')
     const prev = document.activeElement
     closeRef.current?.focus({ preventScroll: true })
     const onKey = (e) => e.key === 'Escape' && onClose()
@@ -114,6 +115,7 @@ function DetailsPage({ build, onClose }) {
     return () => {
       window.removeEventListener('keydown', onKey)
       lenis?.start()
+      document.documentElement.classList.remove('modal-open')
       prev?.focus?.({ preventScroll: true })
     }
   }, [lenis, onClose])
@@ -157,6 +159,9 @@ function DetailsPage({ build, onClose }) {
 
 export default function Builds() {
   const reduced = useReducedMotion()
+  const { lenis } = useSmoothScroll()
+  const [picked, setPicked] = useState(null)
+  const jumpRef = useRef(null)
   const section = useRef(null)
   const row = useRef(null)
   const n = builds.length
@@ -216,6 +221,35 @@ export default function Builds() {
     el.scrollTo({ left: slot.offsetLeft - el.offsetLeft - (el.clientWidth - slot.clientWidth) / 2, behavior: reduced ? 'auto' : 'smooth' })
   }
 
+  jumpRef.current = jump
+
+  // "See the builds", the streetcar and the menu send you here: the scroll plays the whole
+  // reveal on the way down, then the row swipes to the project you came for.
+  useEffect(() => {
+    const onShow = (e) => {
+      const el = section.current
+      if (!el) return
+      const k = Math.max(0, builds.findIndex((b) => b.id === e.detail?.id))
+      const top = el.getBoundingClientRect().top + window.scrollY
+      const target = reduced ? top : top + (el.offsetHeight - window.innerHeight) * 0.92
+      const after = () =>
+        setTimeout(() => {
+          jumpRef.current?.(k)
+          if (e.detail?.id) {
+            setPicked(e.detail.id)
+            setTimeout(() => setPicked(null), 1600)
+          }
+        }, 450)
+      if (lenis) lenis.scrollTo(target, { duration: 1.6, onComplete: after })
+      else {
+        window.scrollTo({ top: target, behavior: reduced ? 'auto' : 'smooth' })
+        setTimeout(after, 900)
+      }
+    }
+    window.addEventListener('rk:show-build', onShow)
+    return () => window.removeEventListener('rk:show-build', onShow)
+  }, [lenis, reduced])
+
   return (
     <section id="builds" ref={section} className={'deck-section' + (reduced ? ' deck-still' : '')} style={{ '--n': n }}>
       <div className="deck-sticky">
@@ -238,7 +272,7 @@ export default function Builds() {
           >
             {builds.map((b, i) => (
               <div className="deck-slot" key={b.id}>
-                <Card build={b} index={i} n={n} progress={progress} offsets={offsets} hidden={open?.id === b.id} onOpen={setOpen} />
+                <Card build={b} index={i} n={n} progress={progress} offsets={offsets} hidden={open?.id === b.id} picked={picked === b.id} onOpen={setOpen} />
               </div>
             ))}
           </div>

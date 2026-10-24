@@ -3,7 +3,6 @@ import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } fr
 import { Baseplate, BrickButton } from '../bricks'
 import { links, profile } from '../data/content.js'
 import { usePrefs } from '../hooks/usePrefs.jsx'
-import { useSmoothScroll } from '../motion/SmoothScroll.jsx'
 import BrickWorld from '../world/BrickWorld.js'
 import Streetcar from './Streetcar.jsx'
 
@@ -28,7 +27,6 @@ const fadeUp = {
 
 export default function Scene() {
   const { sound, setDropped } = usePrefs()
-  const { scrollTo } = useSmoothScroll()
   const reduced = useReducedMotion()
   const section = useRef(null)
   const layer = useRef(null)
@@ -166,7 +164,7 @@ export default function Scene() {
           {profile.intro}
         </motion.p>
         <motion.div className="scene-ctas" variants={fadeUp} custom={0.7}>
-          <BrickButton color="yellow" icon="↘" onClick={() => scrollTo('#builds')} sound={sound}>
+          <BrickButton color="yellow" icon="↘" onClick={() => window.dispatchEvent(new CustomEvent('rk:show-build'))} sound={sound}>
             See the builds
           </BrickButton>
           <BrickButton color="red" href={links.email} icon="↗" sound={sound}>
