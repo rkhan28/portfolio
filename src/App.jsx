@@ -22,7 +22,7 @@ export default function App() {
           <Nav />
           <Scene />
           <Marquee />
-          <main id="main" className="booklet">
+          <main id="main">
             <Builds />
           </main>
           <HowIBuild />

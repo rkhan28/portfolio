@@ -1,16 +1,41 @@
-import { useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { Brick, PartsList } from '../bricks'
 
 // The instruction booklet, played by scrolling: each step drops its bricks onto the tray and
 // a small robot ("an agent") gets built. Scroll back up and it comes apart again.
+// How I take a problem from vague to solved. Each step's parts are the practices it uses.
 const STEPS = [
-  { title: 'Spot a five-minute chore I do every day.', parts: [{ name: '1x3 gray', count: 2, color: 'gray', studs: 3 }, { name: '1x2 blue', count: 4, color: 'blue' }] },
-  { title: 'Decide it deserves its own agent.', parts: [{ name: '1x8 black', color: 'black', studs: 4 }, { name: '1x8 red', count: 3, color: 'red', studs: 4 }] },
-  { title: 'Spend three days building it.', parts: [{ name: '1x2 yellow', count: 4, color: 'yellow' }, { name: '1x2 gray', count: 2, color: 'gray' }] },
-  { title: 'Break it. Twice.', parts: [{ name: '1x6 white', count: 2, color: 'white', studs: 3 }, { name: '1x1 eye', count: 2, color: 'yellow', studs: 1 }] },
-  { title: 'Fix it, test it, give it a name.', parts: [{ name: '1x2 antenna', color: 'gray' }, { name: '1x2 light', color: 'red' }] },
-  { title: 'Five minutes saved. Every single day.', note: 'The ROI arrives eventually.', parts: [{ name: 'Five minutes', color: 'green', studs: 1 }] },
+  {
+    title: 'Find the real problem.',
+    note: 'Talk to the people doing the work, map the workflow, and find where the time and errors actually go.',
+    parts: [{ name: 'User interviews', color: 'gray', studs: 3 }, { name: 'Workflow map', color: 'blue' }],
+  },
+  {
+    title: 'Define what solved looks like.',
+    note: 'Pick a number worth moving (hours saved, errors avoided, response time) and agree on scope before writing code.',
+    parts: [{ name: 'Success metric', color: 'black', studs: 3 }, { name: 'Scope', color: 'red', studs: 3 }],
+  },
+  {
+    title: 'Ship the smallest useful version.',
+    note: 'A working prototype in real hands within days, then iterate on what people actually use.',
+    parts: [{ name: 'Prototype', color: 'yellow' }, { name: 'Feedback loop', count: 2, color: 'gray' }],
+  },
+  {
+    title: 'Stress-test it until it breaks.',
+    note: 'Edge cases, bad data and real traffic. Better I find the cracks than the users do.',
+    parts: [{ name: 'Edge cases', count: 4, color: 'white', studs: 1 }, { name: 'Test suite', color: 'yellow', studs: 3 }],
+  },
+  {
+    title: 'Harden it and hand it over.',
+    note: 'Tests, monitoring and clear docs, so it keeps working without me in the room.',
+    parts: [{ name: 'Monitoring', color: 'gray' }, { name: 'Docs', color: 'red' }],
+  },
+  {
+    title: 'Measure the result.',
+    note: 'Compare against the number from step two. Solved means measurably better, not just shipped.',
+    parts: [{ name: 'Measurable outcome', color: 'green', studs: 3 }],
+  },
 ]
 
 // Robot bricks in stud units from its bottom-left corner. s = the step that adds it.
@@ -72,6 +97,23 @@ export default function HowIBuild() {
   const progress = reduced ? scrollYProgress : smooth
   const [step, setStep] = useState(0)
   const fill = useTransform(progress, [0, 1], ['0%', '100%'])
+  const stage = useRef(null)
+
+  // The robot sizes its studs to the stage, so its head never pokes out on short screens.
+  useLayoutEffect(() => {
+    const el = stage.current
+    if (!el) return undefined
+    const fit = () => {
+      const room = el.clientHeight * 0.9 - 14 - 16
+      const p = Math.max(8, Math.min(22, Math.floor(room / 13.4 / 1.2), Math.floor((el.clientWidth * 0.9) / 12)))
+      el.style.setProperty('--p', `${p}px`)
+      el.style.setProperty('--h', `${Math.round(p * 1.2)}px`)
+    }
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
     const s = Math.min(N - 1, Math.max(0, Math.floor(p * N * 0.999)))
@@ -80,10 +122,10 @@ export default function HowIBuild() {
 
   const current = STEPS[step]
   return (
-    <section id="how" className="how" ref={section} aria-label="How I build things">
+    <section id="how" className="how" ref={section} aria-label="How I solve problems">
       <div className="how-sticky">
         <div className="how-copy">
-          <span className="label eyebrow">How I build things · instructions</span>
+          <span className="label eyebrow">How I solve problems · instructions</span>
           <div className="how-step" aria-live="polite">
             <span className="how-step-label label">Step</span>
             <span className="how-step-num step">
@@ -111,7 +153,7 @@ export default function HowIBuild() {
             >
               <h2 className="heading how-title">{current.title}</h2>
               {current.note ? <p className="lead muted how-note">{current.note}</p> : null}
-              <PartsList title={`Parts for step ${step + 1}`} parts={current.parts} className="how-parts" />
+              <PartsList title={`Toolkit for step ${step + 1}`} parts={current.parts} className="how-parts" />
             </motion.div>
           </div>
           <div className="how-progress" aria-hidden="true">
@@ -119,14 +161,14 @@ export default function HowIBuild() {
           </div>
         </div>
 
-        <div className="how-stage" aria-hidden="true">
+        <div className="how-stage" ref={stage} aria-hidden="true">
           <div className={'robot' + (step === 3 ? ' robot-wobble' : '') + (step >= 4 ? ' robot-named' : '') + (step === 5 ? ' robot-alive' : '')}>
             {ROBOT.map((b, i) => (
               <RobotBrick key={i} b={b} index={i} progress={progress} />
             ))}
           </div>
           <div className="how-tray" />
-          <span className="how-caption label">{step === 5 ? 'Agent online. Waving, mostly.' : 'Scroll to build'}</span>
+          <span className="how-caption label">{step === 5 ? 'Solved, measured, still waving.' : 'Scroll to build'}</span>
         </div>
       </div>
     </section>
